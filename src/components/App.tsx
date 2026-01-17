@@ -7,7 +7,6 @@ import FlippingBook from './FlippingBook';
 
 const BUCKET_NAME = 'uploads'; // اسم الـ bucket
 
-
 function WordToFlipbook({
   savePages,
   getPages,
@@ -19,6 +18,8 @@ function WordToFlipbook({
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
+  const [loadingMessage, setLoadingMessage] = useState('جاري معالجة الملف...');
+  const [dots, setDots] = useState('');
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
 
   useEffect(() => {
@@ -38,6 +39,58 @@ function WordToFlipbook({
 
     fetchPages();
   }, [getPages]);
+
+  // 🔹 تأثير النقط المتحركة
+  useEffect(() => {
+    if (!uploading && !loading) return;
+
+    const interval = setInterval(() => {
+      setDots((prev) => (prev.length >= 3 ? '' : prev + '.'));
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, [uploading, loading]);
+
+  // 🔹 تغيير رسائل التحميل
+  useEffect(() => {
+    if (!uploading) return;
+
+    const messages = [
+      'جاري معالجة الملف',
+      'جاري قراءة المحتوى',
+      'جاري تحليل الصفحات',
+      'جاري معالجة الصور',
+      'تقريباً انتهينا',
+    ];
+
+    let index = 0;
+    const interval = setInterval(() => {
+      index = (index + 1) % messages.length;
+      setLoadingMessage(messages[index]);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [uploading]);
+
+  // 🔹 منع إغلاق الصفحة أثناء الرفع
+  useEffect(() => {
+    if (!uploading) return;
+
+    // دالة التحذير عند محاولة المغادرة
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = 'جاري رفع الملف! إذا أغلقت الصفحة الآن، ستفقد كل التقدم. هل أنت متأكد؟';
+      return e.returnValue;
+    };
+
+    // إضافة المستمع
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // تنظيف المستمع عند الانتهاء
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [uploading]);
 
   // 🔹 دالة تحويل Base64 لـ Blob
   const base64ToBlob = (base64: string, contentType = 'image/png') => {
@@ -168,6 +221,7 @@ function WordToFlipbook({
     if (!realFile) return;
 
     setUploading(true);
+    setLoadingMessage('جاري معالجة الملف');
 
     try {
       const arrayBuffer = await realFile.arrayBuffer();
@@ -213,7 +267,12 @@ function WordToFlipbook({
   return (
     <div className="app-container">
       {loading ? (
-        <div className="upload-section">جاري التحميل...</div>
+        <div className="upload-section">
+          <div className="loading-container">
+            <div className="spinner"></div>
+            <p className="loading-text">جاري تحميل البيانات{dots}</p>
+          </div>
+        </div>
       ) : pages.length > 0 ? (
         <>
           <div className="upload-section">
@@ -221,8 +280,17 @@ function WordToFlipbook({
               <h2>Word to Flipbook</h2>
               <p className="subtitle">تحويل ملفات Word إلى كتاب تفاعلي جميل</p>
               {uploading ? (
-                <div className="loading">
-                  {uploadProgress || 'جاري التحميل...'}
+                <div className="loading-container">
+                  <div className="warning-badge">
+                    ⚠️ لا تغلق الصفحة أثناء الرفع!
+                  </div>
+                  <div className="progress-bar-container">
+                    <div className="progress-bar"></div>
+                  </div>
+                  <p className="loading-text">
+                    {uploadProgress || `${loadingMessage}${dots}`}
+                  </p>
+                  <p className="loading-subtext">قد يستغرق الأمر عدة دقائق...</p>
                 </div>
               ) : (
                 <label className="file-input-wrapper">
@@ -249,8 +317,17 @@ function WordToFlipbook({
             <h2>Word to Flipbook</h2>
             <p className="subtitle">تحويل ملفات Word إلى كتاب تفاعلي جميل</p>
             {uploading ? (
-              <div className="loading">
-                {uploadProgress || 'جاري التحميل...'}
+              <div className="loading-container">
+                <div className="warning-badge">
+                  ⚠️ لا تغلق الصفحة أثناء الرفع!
+                </div>
+                <div className="progress-bar-container">
+                  <div className="progress-bar"></div>
+                </div>
+                <p className="loading-text">
+                  {uploadProgress || `${loadingMessage}${dots}`}
+                </p>
+                <p className="loading-subtext">قد يستغرق الأمر عدة دقائق...</p>
               </div>
             ) : (
               <label className="file-input-wrapper">
