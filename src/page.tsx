@@ -17,8 +17,6 @@ const api = {
     return data.session;
   },
   logout: async () => {
-    console.log(1);
-
     const { error } = await supabase.auth.signOut();
     if (error) {
       throw new Error(error?.message || 'فشل تسجيل الخروج');

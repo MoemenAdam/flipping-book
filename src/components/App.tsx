@@ -199,10 +199,10 @@ function WordToFlipbook({
 
       const pagesArray = rawPages.map((pageHtml) => ({ html: pageHtml }));
 
+      await savePages(pagesArray);
+
       setPages(pagesArray);
       setCurrentPageIndex(0);
-
-      await savePages(pagesArray);
     } catch (err) {
       console.error('Error processing file:', err);
     } finally {

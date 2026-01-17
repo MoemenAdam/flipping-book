@@ -44,6 +44,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background: #f5f5dc;
   color: var(--text-primary);
+  overflow-x: hidden;
 }
 
 .mainApp {
