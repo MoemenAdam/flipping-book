@@ -56,10 +56,7 @@ const View = () => {
         <div className="empty-card">
           <div className="empty-icon">📄</div>
 
-          <h2 className="empty-title">مفيش صفحات لسه</h2>
-          <p className="empty-subtitle">
-            ارفع ملف Word علشان يبدأ الكتاب يتكوّن
-          </p>
+          <h2 className="empty-title">لم يتم رفع اي صفحة بعد</h2>
 
           <Link to="/" className="empty-action">
             ⬆️ ارفع ملف جديد
