@@ -1,12 +1,20 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { extractTitle } from '../constants/global';
+
+type Page = { html: string | null };
 
 const FlippingBook = ({
   pages,
+  titles,
   currentPageIndex,
   setCurrentPageIndex,
-}: any) => {
+}: {
+  pages: Page[];
+  titles: string[];
+  currentPageIndex: number;
+  setCurrentPageIndex: (n: number) => void;
+}) => {
   const [flipDirection, setFlipDirection] = useState<'next' | 'prev' | null>(
     null
   );
@@ -29,14 +37,26 @@ const FlippingBook = ({
     window.scrollTo(0, 0);
   }, [currentPageIndex]);
 
-  console.log({ pages });
+  const underPage =
+    flipDirection === 'prev'
+      ? pages[currentPageIndex + 1]
+      : pages[currentPageIndex];
+
+  const flipPage =
+    flipDirection === 'next'
+      ? pages[currentPageIndex - 1]
+      : pages[currentPageIndex];
+
   return (
     <div className="book-container">
       <div className="nav-buttons-wrapper">
         <button
           className="nav-button"
           onClick={goToNextPage}
-          disabled={currentPageIndex === pages.length - 1}
+          disabled={
+            currentPageIndex === pages.length - 1 ||
+            !pages[currentPageIndex + 1]
+          }
         >
           <ChevronRight />
         </button>
@@ -48,6 +68,7 @@ const FlippingBook = ({
           <ChevronLeft />
         </button>
       </div>
+
       <div className="book">
         {/* الصفحة الثابتة تحت */}
         <div
@@ -58,31 +79,32 @@ const FlippingBook = ({
               ? 'shadow-prev'
               : ''
           }`}
-          dangerouslySetInnerHTML={{
-            __html:
-              flipDirection === 'prev'
-                ? pages[currentPageIndex + 1]?.html
-                : pages[currentPageIndex].html,
-          }}
-        />
+        >
+          {underPage?.html ? (
+            <div dangerouslySetInnerHTML={{ __html: underPage.html }} />
+          ) : (
+            <div className="page-skeleton">جاري تحميل الصفحة...</div>
+          )}
+        </div>
 
         {/* الصفحة اللي بتتقلب */}
         {flipDirection && (
           <div
             className={`page page-flip flip-${flipDirection}`}
             onAnimationEnd={() => setFlipDirection(null)}
-            dangerouslySetInnerHTML={{
-              __html:
-                flipDirection === 'next'
-                  ? pages[currentPageIndex - 1]?.html
-                  : pages[currentPageIndex].html,
-            }}
-          />
+          >
+            {flipPage?.html ? (
+              <div dangerouslySetInnerHTML={{ __html: flipPage.html }} />
+            ) : (
+              <div className="page-skeleton">جاري تحميل الصفحة...</div>
+            )}
+          </div>
         )}
       </div>
 
       <PagesSidebar
         pages={pages}
+        titles={titles}
         setFlipDirection={setFlipDirection}
         currentPageIndex={currentPageIndex}
         setCurrentPageIndex={setCurrentPageIndex}
@@ -93,17 +115,26 @@ const FlippingBook = ({
 
 const PagesSidebar = ({
   pages,
+  titles,
   setFlipDirection,
   currentPageIndex,
   setCurrentPageIndex,
-}: any) => {
-  const extractTitle = (html: string) => {
-    const match = html.match(/<h1[^>]*>(.*?)<\/h1>/);
-    return match ? match[1] : `صفحة`;
+}: {
+  pages: Page[];
+  titles: string[];
+  setFlipDirection: (d: 'next' | 'prev' | null) => void;
+  currentPageIndex: number;
+  setCurrentPageIndex: (n: number) => void;
+}) => {
+  const renderTitle = (index: number) => {
+    if (titles[index]) return titles[index];
+    const html = pages[index]?.html;
+    return html ? extractTitle(html) : `صفحة ${index + 1}`;
   };
+
   return (
     <aside className="pages-sidebar">
-      {pages.map((page: any, index: number) => (
+      {pages.map((_, index) => (
         <button
           key={index}
           className={`sidebar-item ${
@@ -113,14 +144,11 @@ const PagesSidebar = ({
             setFlipDirection(index > currentPageIndex ? 'next' : 'prev');
             setCurrentPageIndex(index);
           }}
-          title={extractTitle(page.html)}
+          title={renderTitle(index)}
         >
-          <span
-            className="title"
-            dangerouslySetInnerHTML={{
-              __html: extractTitle(page.html),
-            }}
-          />
+          <span className="title">{renderTitle(index)}</span>
+
+          {!pages[index]?.html && <span className="loading-dot">⏳</span>}
         </button>
       ))}
     </aside>

@@ -99,6 +99,126 @@ body {
   color: #666;
   margin-top: 0.5rem;
 }
+.page-skeleton {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 25%,
+    #e0e0e0 37%,
+    #f0f0f0 63%
+  );
+  animation: shimmer 1.4s infinite;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -468px 0;
+  }
+  100% {
+    background-position: 468px 0;
+  }
+}
+
+.loading-dot {
+  margin-left: 6px;
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+.empty-state {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(
+    circle at top,
+    rgba(191, 148, 86, 0.15),
+    var(--bg-light)
+  );
+  padding: 20px;
+}
+
+.empty-card {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.6),
+    var(--bg-white)
+  );
+  border-radius: 18px;
+  padding: 42px 34px;
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(191, 148, 86, 0.25);
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.empty-icon {
+  font-size: 58px;
+  margin-bottom: 18px;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.15));
+}
+
+.empty-title {
+  font-size: 24px;
+  font-weight: 800;
+  margin-bottom: 10px;
+  color: var(--text-primary);
+  letter-spacing: 0.3px;
+}
+
+.empty-subtitle {
+  font-size: 15px;
+  color: var(--text-secondary);
+  margin-bottom: 28px;
+  line-height: 1.7;
+}
+
+.empty-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 22px;
+  border-radius: 12px;
+  background: linear-gradient(
+    135deg,
+    var(--primary-light),
+    var(--primary-dark)
+  );
+  color: white;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 6px 14px rgba(191, 148, 86, 0.45);
+  transition: transform var(--transition-fast),
+    box-shadow var(--transition-fast),
+    filter var(--transition-fast);
+}
+
+.empty-action:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 10px 22px rgba(191, 148, 86, 0.55);
+  filter: brightness(1.05);
+}
+
+.empty-action:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 5px 12px rgba(191, 148, 86, 0.35);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 
 .warning-badge {
   background: linear-gradient(135deg, #ff6b6b, #ff8787);

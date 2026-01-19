@@ -9,47 +9,26 @@ const BUCKET_NAME = 'uploads'; // اسم الـ bucket
 
 function WordToFlipbook({
   savePages,
-  getPages,
 }: {
   savePages: (pages: { html: string }[]) => any;
-  getPages: () => Promise<{ html: string }[]>;
 }) {
   const [pages, setPages] = useState<{ html: string }[]>([]);
-  const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
   const [loadingMessage, setLoadingMessage] = useState('جاري معالجة الملف...');
   const [dots, setDots] = useState('');
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
 
-  useEffect(() => {
-    const fetchPages = async () => {
-      try {
-        const existingPages = await getPages();
-        if (existingPages && existingPages.length > 0) {
-          setPages(existingPages);
-          setCurrentPageIndex(0);
-        }
-      } catch (err) {
-        console.error('Error fetching pages:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPages();
-  }, [getPages]);
-
   // 🔹 تأثير النقط المتحركة
   useEffect(() => {
-    if (!uploading && !loading) return;
+    if (!uploading) return;
 
     const interval = setInterval(() => {
       setDots((prev) => (prev.length >= 3 ? '' : prev + '.'));
     }, 500);
 
     return () => clearInterval(interval);
-  }, [uploading, loading]);
+  }, [uploading]);
 
   // 🔹 تغيير رسائل التحميل
   useEffect(() => {
@@ -79,7 +58,8 @@ function WordToFlipbook({
     // دالة التحذير عند محاولة المغادرة
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
-      e.returnValue = 'جاري رفع الملف! إذا أغلقت الصفحة الآن، ستفقد كل التقدم. هل أنت متأكد؟';
+      e.returnValue =
+        'جاري رفع الملف! إذا أغلقت الصفحة الآن، ستفقد كل التقدم. هل أنت متأكد؟';
       return e.returnValue;
     };
 
@@ -266,14 +246,7 @@ function WordToFlipbook({
 
   return (
     <div className="app-container">
-      {loading ? (
-        <div className="upload-section">
-          <div className="loading-container">
-            <div className="spinner"></div>
-            <p className="loading-text">جاري تحميل البيانات{dots}</p>
-          </div>
-        </div>
-      ) : pages.length > 0 ? (
+      {pages.length > 0 ? (
         <>
           <div className="upload-section">
             <div className="upload-card">
@@ -290,7 +263,9 @@ function WordToFlipbook({
                   <p className="loading-text">
                     {uploadProgress || `${loadingMessage}${dots}`}
                   </p>
-                  <p className="loading-subtext">قد يستغرق الأمر عدة دقائق...</p>
+                  <p className="loading-subtext">
+                    قد يستغرق الأمر عدة دقائق...
+                  </p>
                 </div>
               ) : (
                 <label className="file-input-wrapper">
@@ -306,6 +281,7 @@ function WordToFlipbook({
             </div>
           </div>
           <FlippingBook
+            titles={[]}
             pages={pages}
             currentPageIndex={currentPageIndex}
             setCurrentPageIndex={setCurrentPageIndex}

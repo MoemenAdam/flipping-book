@@ -1,56 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-'use client'
 import { useState, useEffect } from 'react';
 import App from './components/App';
-import { supabase } from './components/supabase';
-
-const api = {
-  login: async (email: string, password: string) => {
-    const { error, data } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      throw new Error(error?.message || 'فشل تسجيل الدخول');
-    }
-    return data.session;
-  },
-  logout: async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      throw new Error(error?.message || 'فشل تسجيل الخروج');
-    }
-    return true;
-  },
-  savePages: async (pages: { html: string }[]) => {
-    console.log({ pages });
-
-    const { error } = await supabase
-      .from('documents')
-      .upsert(
-        { key: 'flipping-book', pages },
-        { onConflict: 'key' }
-      );
-
-    if (error) throw error;
-
-    return true;
-  },
-
-  getPages: async () => {
-    const { data, error } = await supabase
-      .from('documents')
-      .select('pages')
-      .eq('key', 'flipping-book')
-      .single();
-
-    if (error) throw error;
-
-    return data.pages;
-  },
-};
-
+import { api } from './constants/global';
+import { Link } from 'react-router-dom';
 
 const Page = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -61,7 +13,7 @@ const Page = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [finishCheckToken, setFinishCheckToken] = useState(false)
+  const [finishCheckToken, setFinishCheckToken] = useState(false);
 
   useEffect(() => {
     const savedToken = localStorage.getItem('authToken');
@@ -71,7 +23,7 @@ const Page = () => {
       setUserEmail(savedEmail);
       setIsLoggedIn(true);
     }
-    setFinishCheckToken(true)
+    setFinishCheckToken(true);
   }, []);
 
   const handleLogin = async (e: any) => {
@@ -110,14 +62,14 @@ const Page = () => {
     setUserEmail('');
     localStorage.removeItem('authToken');
     localStorage.removeItem('userEmail');
-    setSuccess('')
+    setSuccess('');
     setEmail('');
     setPassword('');
-    api.logout()
+    api.logout();
   };
 
   if (!finishCheckToken) {
-    return <div>loading</div>
+    return <div>loading</div>;
   }
 
   if (!isLoggedIn) {
@@ -220,8 +172,15 @@ const Page = () => {
                 />
               </svg>
             </div>
+
             <h2 style={styles.headerTitle}>لوحة التحكم</h2>
+
+            {/* زرار عرض الكتاب */}
+            <Link to="/view" style={styles.viewBookBtn}>
+              📖 الكتاب الحالي
+            </Link>
           </div>
+
           <div style={styles.headerRight}>
             <div style={styles.userInfo}>
               <span style={styles.userEmail}>{userEmail}</span>
@@ -229,11 +188,8 @@ const Page = () => {
                 {userEmail.charAt(0).toUpperCase()}
               </div>
             </div>
-            <button
-              onClick={handleLogout}
-              style={{ color: 'white' }}
-              className="sidebar-item"
-            >
+
+            <button onClick={handleLogout} style={styles.logoutButton}>
               تسجيل الخروج
             </button>
           </div>
@@ -242,7 +198,7 @@ const Page = () => {
 
       {/* Main Content with File Upload */}
       <div className="mainApp">
-        <App savePages={api.savePages} getPages={api.getPages} />
+        <App savePages={api.savePages} />
       </div>
     </div>
   );
@@ -266,6 +222,33 @@ const styles = {
     width: '100%',
     boxShadow: 'var(--shadow-lg)',
     border: '1px solid rgba(191, 148, 86, 0.1)',
+  },
+  viewBookBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '10px 16px',
+    borderRadius: '12px',
+    background:
+      'linear-gradient(135deg, var(--primary-light), var(--primary-dark))',
+    color: 'white',
+    fontSize: '14px',
+    fontWeight: '700',
+    textDecoration: 'none',
+    boxShadow: '0 6px 14px rgba(191, 148, 86, 0.35)',
+    transition: 'var(--transition-fast)',
+    marginLeft: '10px',
+  },
+  logoutButton: {
+    padding: '10px 16px',
+    borderRadius: '12px',
+    background: 'transparent',
+    color: 'var(--primary-color)',
+    fontSize: '14px',
+    fontWeight: '700',
+    border: '2px solid rgba(191, 148, 86, 0.4)',
+    cursor: 'pointer',
+    transition: 'var(--transition-fast)',
   },
   logoSection: {
     textAlign: 'center',
@@ -345,13 +328,37 @@ const styles = {
     gap: '8px',
   },
   header: {
-    background: 'var(--bg-white)',
-    borderBottom: '1px solid rgba(191, 148, 86, 0.1)',
+    background: 'linear-gradient(180deg, #fff, var(--bg-white))',
+    borderBottom: '1px solid rgba(191, 148, 86, 0.15)',
     boxShadow: 'var(--shadow-sm)',
     position: 'fixed',
     width: '100vw',
     top: 0,
     zIndex: 1000,
+    backdropFilter: 'blur(6px)',
+  },
+
+  headerTitle: {
+    fontSize: '22px',
+    fontWeight: '800',
+    color: 'var(--text-primary)',
+    margin: 0,
+    letterSpacing: '0.3px',
+  },
+
+  userAvatar: {
+    width: '42px',
+    height: '42px',
+    borderRadius: '50%',
+    background:
+      'linear-gradient(135deg, var(--primary-light), var(--primary-dark))',
+    color: 'white',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontWeight: '700',
+    fontSize: '16px',
+    boxShadow: '0 4px 10px rgba(191, 148, 86, 0.4)',
   },
   headerContent: {
     maxWidth: '1200px',
@@ -369,12 +376,6 @@ const styles = {
   logoSmall: {
     display: 'flex',
   },
-  headerTitle: {
-    fontSize: '24px',
-    fontWeight: '700',
-    color: 'var(--text-primary)',
-    margin: 0,
-  },
   headerRight: {
     display: 'flex',
     alignItems: 'center',
@@ -389,18 +390,6 @@ const styles = {
     fontSize: '14px',
     color: 'var(--text-secondary)',
     fontWeight: '500',
-  },
-  userAvatar: {
-    width: '40px',
-    height: '40px',
-    borderRadius: '50%',
-    background: 'var(--primary-color)',
-    color: 'white',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontWeight: '600',
-    fontSize: '16px',
   },
   mainContent: {
     marginTop: '100px',
