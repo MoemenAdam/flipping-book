@@ -24,6 +24,8 @@ function WordToFlipbook() {
   const [pages, setPages] = useState<{ html: string }[]>([]);
   const [rowHtml, setRowHtml] = useState<string>('');
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [showConfirmSave, setShowConfirmSave] = useState(false);
+
   const navigate = useNavigate();
 
   // 🔹 تأثير النقط المتحركة
@@ -327,7 +329,7 @@ function WordToFlipbook() {
 
                 <button
                   className="btn btn-primary"
-                  onClick={handleApply}
+                  onClick={() => setShowConfirmSave(true)}
                   disabled={uploading || pages.length === 0}
                 >
                   💾 حفظ التعديلات
@@ -357,6 +359,40 @@ function WordToFlipbook() {
                         }}
                       >
                         نعم، احذف
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {showConfirmSave && (
+                <div className="confirm-overlay">
+                  <div className="confirm-modal">
+                    <h3>⚠️ تنبيه مهم</h3>
+                    <p>
+                      حفظ الكتاب سيؤدي إلى{' '}
+                      <strong>حذف كل الصفحات القديمة</strong> واستبدالها
+                      بالمحتوى الجديد.
+                    </p>
+                    <p style={{ color: '#b91c1c', fontWeight: 600 }}>
+                      لا يمكن التراجع عن هذا الإجراء.
+                    </p>
+
+                    <div className="confirm-actions">
+                      <button
+                        className="btn btn-secondary"
+                        onClick={() => setShowConfirmSave(false)}
+                      >
+                        إلغاء
+                      </button>
+
+                      <button
+                        className="btn btn-primary"
+                        onClick={async () => {
+                          setShowConfirmSave(false);
+                          await handleApply(); // 👈 الحفظ الحقيقي هنا
+                        }}
+                      >
+                        نعم، احفظ واستبدل
                       </button>
                     </div>
                   </div>
