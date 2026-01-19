@@ -2,6 +2,8 @@
 import { supabase } from '../components/supabase';
 
 const BOOK_KEY = 'flipping-book';
+const BUCKET_NAME = 'uploads';
+
 export const api = {
   login: async (email: string, password: string) => {
     const { error, data } = await supabase.auth.signInWithPassword({
@@ -19,6 +21,34 @@ export const api = {
     if (error) {
       throw new Error(error?.message || 'فشل تسجيل الخروج');
     }
+    return true;
+  },
+  deletePages: async () => {
+    const { error } = await supabase
+      .from('book_pages')
+      .delete()
+      .eq('book_key', BOOK_KEY);
+
+    if (error) throw error;
+    return true;
+  },
+  clearImagesBucket: async () => {
+    const { data, error } = await supabase.storage
+      .from(BUCKET_NAME)
+      .list('', { limit: 1000 });
+
+    if (error) throw error;
+
+    if (!data || data.length === 0) return true;
+
+    const filePaths = data.map((file) => file.name);
+
+    const { error: deleteError } = await supabase.storage
+      .from(BUCKET_NAME)
+      .remove(filePaths);
+
+    if (deleteError) throw deleteError;
+
     return true;
   },
   // 🔹 حفظ الصفحات صفحة صفحة

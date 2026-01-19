@@ -62,7 +62,9 @@ body {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .progress-bar-container {
@@ -82,9 +84,15 @@ body {
 }
 
 @keyframes progress {
-  0% { width: 0%; }
-  50% { width: 70%; }
-  100% { width: 100%; }
+  0% {
+    width: 0%;
+  }
+  50% {
+    width: 70%;
+  }
+  100% {
+    width: 100%;
+  }
 }
 
 .upload-error-box {
@@ -146,12 +154,7 @@ body {
 }
 .page-skeleton {
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    #f0f0f0 25%,
-    #e0e0e0 37%,
-    #f0f0f0 63%
-  );
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 37%, #f0f0f0 63%);
   animation: shimmer 1.4s infinite;
   padding: 20px;
   border-radius: 8px;
@@ -238,8 +241,7 @@ body {
   text-decoration: none;
   box-shadow: 0 6px 14px rgba(191, 148, 86, 0.45);
   transition: transform var(--transition-fast),
-    box-shadow var(--transition-fast),
-    filter var(--transition-fast);
+    box-shadow var(--transition-fast), filter var(--transition-fast);
 }
 
 .empty-action:hover {
@@ -264,7 +266,6 @@ body {
   }
 }
 
-
 .warning-badge {
   background: linear-gradient(135deg, #ff6b6b, #ff8787);
   color: white;
@@ -278,7 +279,8 @@ body {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
   }
@@ -292,7 +294,7 @@ body {
 }
 
 .app-container {
-  /* min-height: 100vh; */
+  min-height: 80vh;
   padding: 0rem 1rem;
 }
 
@@ -334,6 +336,129 @@ body {
   font-size: 1rem;
 }
 
+.actions-wrapper {
+  display: flex;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.btn {
+  flex: 1;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  border: none;
+  box-shadow: var(--shadow-md);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: linear-gradient(
+    135deg,
+    var(--primary-color) 0%,
+    var(--primary-dark) 100%
+  );
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.btn-secondary {
+  background: #e5e7eb;
+  color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+  background: #d1d5db;
+}
+
+/* 🔔 مودال التأكيد */
+
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease;
+}
+
+.confirm-modal {
+  background: var(--bg-white);
+  border-radius: 20px;
+  padding: 30px 25px;
+  width: 90%;
+  max-width: 420px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(191, 148, 86, 0.15);
+  text-align: center;
+  animation: scaleIn 0.25s ease;
+}
+
+.confirm-modal h3 {
+  margin: 0 0 12px 0;
+  color: var(--text-primary);
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.confirm-modal p {
+  margin: 0 0 25px 0;
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 12px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.9);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+.inputs-wrapper {
+  display: flex;
+  gap: 20px;
+}
+
 .file-input-wrapper {
   position: relative;
   display: inline-block;
@@ -363,6 +488,40 @@ body {
   transition: all var(--transition-base);
   box-shadow: var(--shadow-md);
   border: 2px solid transparent;
+}
+
+.save-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 1rem 2rem;
+  background: rgb(12, 157, 12);
+  color: white;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-md);
+  border: 2px solid transparent;
+  font-size: 20px;
+}
+
+.delete-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 1rem 2rem;
+  background: red;
+  color: white;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-md);
+  border: 2px solid transparent;
+  font-size: 20px;
 }
 
 .file-label:hover {
@@ -416,6 +575,10 @@ body {
   transform-style: preserve-3d;
   backface-visibility: hidden;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+.page-wrapper {
+  position: relative;
 }
 
 .page-under::before {

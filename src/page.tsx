@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import WordToFlipbook from './components/App';
 import { api } from './constants/global';
 import { Link } from 'react-router-dom';
+import { supabase } from './components/supabase';
 
 const Page = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -16,14 +17,47 @@ const Page = () => {
   const [finishCheckToken, setFinishCheckToken] = useState(false);
 
   useEffect(() => {
-    const savedToken = localStorage.getItem('authToken');
-    const savedEmail = localStorage.getItem('userEmail');
-    if (savedToken && savedEmail) {
-      setToken(savedToken);
-      setUserEmail(savedEmail);
-      setIsLoggedIn(true);
-    }
-    setFinishCheckToken(true);
+    const checkSession = async () => {
+      try {
+        // 1️⃣ هات السيشن من Supabase
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+
+        if (error) throw error;
+
+        // 2️⃣ لو في Session سليمة
+        if (session?.access_token && session.user?.email) {
+          setToken(session.access_token);
+          setUserEmail(session.user.email);
+          setIsLoggedIn(true);
+
+          // sync مع localStorage
+          localStorage.setItem('authToken', session.access_token);
+          localStorage.setItem('userEmail', session.user.email);
+        } else {
+          // 3️⃣ مفيش session → امسح أي junk
+          setIsLoggedIn(false);
+          setToken(null);
+          setUserEmail('');
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('userEmail');
+        }
+      } catch (err) {
+        console.error('Session check failed:', err);
+
+        setIsLoggedIn(false);
+        setToken(null);
+        setUserEmail('');
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userEmail');
+      } finally {
+        setFinishCheckToken(true);
+      }
+    };
+
+    checkSession();
   }, []);
 
   const handleLogin = async (e: any) => {

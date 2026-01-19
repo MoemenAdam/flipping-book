@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { extractTitle } from '../constants/global';
 
 type Page = { html: string | null };
@@ -18,11 +18,16 @@ const FlippingBook = ({
   const [flipDirection, setFlipDirection] = useState<'next' | 'prev' | null>(
     null
   );
+  const [pageHeight, setPageHeight] = useState(0);
+  const pageRef = useRef<HTMLDivElement | null>(null);
 
   const goToNextPage = () => {
     if (currentPageIndex < pages.length - 1) {
       setFlipDirection('next');
       setCurrentPageIndex(currentPageIndex + 1);
+      setTimeout(() => {
+        setPageHeight(pageRef.current?.offsetHeight ?? 0);
+      }, 100);
     }
   };
 
@@ -30,6 +35,9 @@ const FlippingBook = ({
     if (currentPageIndex > 0) {
       setFlipDirection('prev');
       setCurrentPageIndex(currentPageIndex - 1);
+      setTimeout(() => {
+        setPageHeight(pageRef.current?.offsetHeight ?? 0);
+      }, 100);
     }
   };
 
@@ -46,6 +54,14 @@ const FlippingBook = ({
     flipDirection === 'next'
       ? pages[currentPageIndex - 1]
       : pages[currentPageIndex];
+
+  useEffect(() => {
+    if (pageRef.current) {
+      setTimeout(() => {
+        setPageHeight(pageRef.current?.offsetHeight ?? 0);
+      }, 100);
+    }
+  }, [underPage, pageRef]);
 
   return (
     <div className="book-container">
@@ -69,9 +85,15 @@ const FlippingBook = ({
         </button>
       </div>
 
-      <div className="book">
+      <div
+        className="book"
+        style={{
+          height: pageHeight,
+        }}
+      >
         {/* الصفحة الثابتة تحت */}
         <div
+          ref={pageRef}
           className={`page page-under ${
             flipDirection === 'next'
               ? 'shadow-next'
@@ -83,7 +105,7 @@ const FlippingBook = ({
           {underPage?.html ? (
             <div dangerouslySetInnerHTML={{ __html: underPage.html }} />
           ) : (
-            <div className="page-skeleton">جاري تحميل الصفحة...</div>
+            <div className="">جاري تحميل الصفحة...</div>
           )}
         </div>
 

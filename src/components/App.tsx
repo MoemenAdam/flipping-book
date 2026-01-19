@@ -5,6 +5,7 @@ import mammoth from 'mammoth';
 import { supabase } from './supabase';
 import { api } from '../constants/global';
 import { useNavigate } from 'react-router-dom';
+import FlippingBook from './FlippingBook';
 
 const BUCKET_NAME = 'uploads'; // اسم الـ bucket
 
@@ -13,13 +14,16 @@ function WordToFlipbook() {
   const [uploadProgress, setUploadProgress] = useState('');
   const [loadingMessage, setLoadingMessage] = useState('جاري معالجة الملف...');
   const [dots, setDots] = useState('');
-  const [, setCurrentPageIndex] = useState(0);
+  const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [uploadStage, setUploadStage] = useState<'idle' | 'images' | 'pages'>(
     'idle'
   );
   const [uploadError, setUploadError] = useState('');
   const [uploadedCount, setUploadedCount] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [pages, setPages] = useState<{ html: string }[]>([]);
+  const [rowHtml, setRowHtml] = useState<string>('');
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const navigate = useNavigate();
 
   // 🔹 تأثير النقط المتحركة
@@ -209,7 +213,7 @@ function WordToFlipbook() {
     try {
       const arrayBuffer = await realFile.arrayBuffer();
       const result = await mammoth.convertToHtml({ arrayBuffer });
-      let html = result.value;
+      const html = result.value;
 
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, 'text/html');
@@ -225,9 +229,43 @@ function WordToFlipbook() {
 
       processItalicTooltips(doc.body);
 
-      // 🔹 نرفع الصور قبل تقسيم الصفحات
+      const rawPages = doc.body.innerHTML
+        .split(/<h[1-2]>/)
+        .map((p) => p.trim())
+        .filter(Boolean)
+        .map((p, index) => (index === 0 ? p : '<h1>' + p));
+
+      const pagesArray = rawPages.map((pageHtml) => ({ html: pageHtml }));
+      setPages(pagesArray);
+      setRowHtml(doc.body.innerHTML);
+    } catch (err) {
+      console.error('Error processing file:', err);
+    } finally {
+      setUploading(false);
+      setUploadStage('idle');
+    }
+  };
+
+  const handleApply = async () => {
+    let html = rowHtml;
+
+    setUploading(true);
+    setPages([]);
+    setUploadError('');
+    setUploadedCount(0);
+    setTotalPages(0);
+    setUploadStage('idle');
+
+    try {
+      // 🧹 فضّي الصور القديمة
+      await api.clearImagesBucket();
+
+      // 🔥 امسح الكتاب القديم كله
+      await api.deletePages();
+
+      // 🔹 مرحلة الصور
       setUploadStage('images');
-      html = await processAndUploadImages(doc.body.innerHTML);
+      html = await processAndUploadImages(html);
 
       const rawPages = html
         .split(/<h[1-2]>/)
@@ -237,123 +275,177 @@ function WordToFlipbook() {
 
       const pagesArray = rawPages.map((pageHtml) => ({ html: pageHtml }));
 
-      try {
-        const total = pagesArray.length;
-        setUploadStage('pages');
-        setTotalPages(total);
-        setUploadedCount(0);
-        setUploadError('');
+      // 🔹 مرحلة الصفحات
+      const total = pagesArray.length;
+      setUploadStage('pages');
+      setTotalPages(total);
+      setUploadedCount(0);
 
-        for (let i = 0; i < total; i++) {
-          setUploadProgress(`جاري رفع الصفحات... (${i + 1}/${total})`);
-
-          await api.saveSinglePage(i, pagesArray[i].html, total);
-
-          setUploadedCount(i + 1);
-        }
-
-        setUploadProgress('تم الانتهاء من رفع الكتاب بالكامل ✅');
-        setCurrentPageIndex(0);
-
-        navigate('/view');
-      } catch (err: any) {
-        console.error(err);
-
-        setUploadError(
-          err?.message ||
-            'حصل خطأ أثناء رفع الصفحات. تأكد من الاتصال بالإنترنت وحاول مرة أخرى.'
-        );
-
-        setUploading(false);
-        setUploadStage('idle');
-        return;
-      } finally {
-        setUploading(false);
-        setUploadStage('idle');
+      for (let i = 0; i < total; i++) {
+        setUploadProgress(`جاري رفع الصفحات... (${i + 1}/${total})`);
+        await api.saveSinglePage(i, pagesArray[i].html, total);
+        setUploadedCount(i + 1);
       }
 
+      setUploadProgress('تم الانتهاء من رفع الكتاب بالكامل ✅');
       setCurrentPageIndex(0);
-    } catch (err) {
-      console.error('Error processing file:', err);
-    } finally {
-      setUploading(false);
+
+      navigate('/view');
+    } catch (err: any) {
+      console.error(err);
+
+      setUploadError(
+        err?.message ||
+          'حصل خطأ أثناء رفع الصفحات. تأكد من الاتصال بالإنترنت وحاول مرة أخرى.'
+      );
+
       setUploadStage('idle');
+      setUploading(false);
+      return;
+    } finally {
+      setUploadStage('idle');
+      setUploading(false);
     }
   };
 
   return (
     <div className="app-container">
-      <div className="upload-section">
-        <div className="upload-card">
-          <h2>Word to Flipbook</h2>
-          <p className="subtitle">تحويل ملفات Word إلى كتاب تفاعلي جميل</p>
-          {uploadError ? (
-            <div className="upload-error-box">
-              <span className="error-icon">❌</span>
-              <p className="error-text">{uploadError}</p>
+      {pages.length > 0 ? (
+        <>
+          <div className="upload-section">
+            <div className="upload-card">
+              <h2>Word to Flipbook</h2>
+              <p className="subtitle">تحويل ملفات Word إلى كتاب تفاعلي جميل</p>
+              <div className="actions-wrapper">
+                <button
+                  className="btn btn-danger"
+                  onClick={() => setShowConfirmDelete(true)}
+                  disabled={uploading}
+                >
+                  🗑️ مسح الكتاب
+                </button>
 
-              <button
-                className="retry-btn"
-                onClick={() => {
-                  setUploadError('');
-                  setUploadedCount(0);
-                  setTotalPages(0);
-                }}
-              >
-                🔁 حاول مرة أخرى
-              </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={handleApply}
+                  disabled={uploading || pages.length === 0}
+                >
+                  💾 حفظ التعديلات
+                </button>
+              </div>
+
+              {/* مودال التأكيد */}
+              {showConfirmDelete && (
+                <div className="confirm-overlay">
+                  <div className="confirm-modal">
+                    <h3>⚠️ تأكيد المسح</h3>
+                    <p>هل أنت متأكد أنك تريد حذف كل الصفحات والصور؟</p>
+
+                    <div className="confirm-actions">
+                      <button
+                        className="btn btn-secondary"
+                        onClick={() => setShowConfirmDelete(false)}
+                      >
+                        إلغاء
+                      </button>
+
+                      <button
+                        className="btn btn-danger"
+                        onClick={() => {
+                          setPages([]);
+                          setShowConfirmDelete(false);
+                        }}
+                      >
+                        نعم، احذف
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-          ) : uploading ? (
-            uploadStage === 'images' ? (
-              <div className="loading-container">
-                <div className="warning-badge">
-                  ⚠️ لا تغلق الصفحة أثناء الرفع!
-                </div>
-                <div className="progress-bar-container">
-                  <div className="progress-bar"></div>
-                </div>
-                <p className="loading-text">
-                  {uploadProgress || `${loadingMessage}${dots}`}
-                </p>
-                <p className="loading-subtext">قد يستغرق الأمر عدة دقائق...</p>
-              </div>
-            ) : uploadStage === 'pages' ? (
-              <div className="loading-container">
-                <div className="warning-badge">
-                  ⚠️ لا تغلق الصفحة أثناء الرفع!
-                </div>
+          </div>
+          <FlippingBook
+            pages={pages}
+            titles={[]}
+            currentPageIndex={currentPageIndex}
+            setCurrentPageIndex={setCurrentPageIndex}
+          />
+        </>
+      ) : (
+        <div className="upload-section">
+          <div className="upload-card">
+            <h2>Word to Flipbook</h2>
+            <p className="subtitle">تحويل ملفات Word إلى كتاب تفاعلي جميل</p>
+            {uploadError ? (
+              <div className="upload-error-box">
+                <span className="error-icon">❌</span>
+                <p className="error-text">{uploadError}</p>
 
-                <div className="progress-bar-container">
-                  <div
-                    className="progress-bar"
-                    style={{
-                      width: `${Math.round(
-                        (uploadedCount / totalPages) * 100
-                      )}%`,
-                    }}
-                  />
-                </div>
-
-                <p className="loading-text">
-                  تم رفع {uploadedCount} من {totalPages} صفحة
-                </p>
+                <button
+                  className="retry-btn"
+                  onClick={() => {
+                    setUploadError('');
+                    setUploadedCount(0);
+                    setTotalPages(0);
+                  }}
+                >
+                  🔁 حاول مرة أخرى
+                </button>
               </div>
+            ) : uploading ? (
+              uploadStage === 'images' ? (
+                <div className="loading-container">
+                  <div className="warning-badge">
+                    ⚠️ لا تغلق الصفحة أثناء الرفع!
+                  </div>
+                  <div className="progress-bar-container">
+                    <div className="progress-bar"></div>
+                  </div>
+                  <p className="loading-text">
+                    {uploadProgress || `${loadingMessage}${dots}`}
+                  </p>
+                  <p className="loading-subtext">
+                    قد يستغرق الأمر عدة دقائق...
+                  </p>
+                </div>
+              ) : uploadStage === 'pages' ? (
+                <div className="loading-container">
+                  <div className="warning-badge">
+                    ⚠️ لا تغلق الصفحة أثناء الرفع!
+                  </div>
+
+                  <div className="progress-bar-container">
+                    <div
+                      className="progress-bar"
+                      style={{
+                        width: `${Math.round(
+                          (uploadedCount / totalPages) * 100
+                        )}%`,
+                      }}
+                    />
+                  </div>
+
+                  <p className="loading-text">
+                    تم رفع {uploadedCount} من {totalPages} صفحة
+                  </p>
+                </div>
+              ) : (
+                loadingMessage ?? 'loading'
+              )
             ) : (
-              'loading'
-            )
-          ) : (
-            <label className="file-input-wrapper">
-              <input
-                type="file"
-                accept=".docx"
-                onChange={handleFile}
-                className="file-input"
-              />
-              <span className="file-label">اختر ملف Word</span>
-            </label>
-          )}
+              <label className="file-input-wrapper">
+                <input
+                  type="file"
+                  accept=".docx"
+                  onChange={handleFile}
+                  className="file-input"
+                />
+                <span className="file-label">اختر ملف Word</span>
+              </label>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
