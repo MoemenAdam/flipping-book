@@ -87,6 +87,51 @@ body {
   100% { width: 100%; }
 }
 
+.upload-error-box {
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: 14px;
+  padding: 18px 16px;
+  margin-top: 16px;
+  text-align: center;
+  animation: fadeInUp 0.4s ease-out;
+}
+
+.error-icon {
+  font-size: 22px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.error-text {
+  color: #b91c1c;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+
+.retry-btn {
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: linear-gradient(
+    135deg,
+    var(--primary-light),
+    var(--primary-dark)
+  );
+  color: white;
+  border: none;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.retry-btn:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
 .loading-text {
   font-size: 1.1rem;
   color: #333;

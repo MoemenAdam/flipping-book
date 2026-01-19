@@ -37,6 +37,26 @@ export const api = {
     if (error) throw error;
     return true;
   },
+  saveSinglePage: async (
+    pageIndex: number,
+    html: string,
+    totalPages: number
+  ) => {
+    const { error } = await supabase.from('book_pages').upsert(
+      {
+        book_key: 'flipping-book',
+        page_index: pageIndex,
+        title: extractTitle(html),
+        html,
+      },
+      { onConflict: 'book_key,page_index' }
+    );
+    console.log({ totalPages });
+
+    if (error) throw error;
+
+    return true;
+  },
   // 🔹 جلب صفحة واحدة
   getPage: async (pageIndex: number) => {
     const { data, error } = await supabase

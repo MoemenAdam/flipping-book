@@ -3,21 +3,24 @@ import type React from 'react';
 import { useEffect, useState } from 'react';
 import mammoth from 'mammoth';
 import { supabase } from './supabase';
-import FlippingBook from './FlippingBook';
+import { api } from '../constants/global';
+import { useNavigate } from 'react-router-dom';
 
 const BUCKET_NAME = 'uploads'; // اسم الـ bucket
 
-function WordToFlipbook({
-  savePages,
-}: {
-  savePages: (pages: { html: string }[]) => any;
-}) {
-  const [pages, setPages] = useState<{ html: string }[]>([]);
+function WordToFlipbook() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
   const [loadingMessage, setLoadingMessage] = useState('جاري معالجة الملف...');
   const [dots, setDots] = useState('');
-  const [currentPageIndex, setCurrentPageIndex] = useState(0);
+  const [, setCurrentPageIndex] = useState(0);
+  const [uploadStage, setUploadStage] = useState<'idle' | 'images' | 'pages'>(
+    'idle'
+  );
+  const [uploadError, setUploadError] = useState('');
+  const [uploadedCount, setUploadedCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const navigate = useNavigate();
 
   // 🔹 تأثير النقط المتحركة
   useEffect(() => {
@@ -223,6 +226,7 @@ function WordToFlipbook({
       processItalicTooltips(doc.body);
 
       // 🔹 نرفع الصور قبل تقسيم الصفحات
+      setUploadStage('images');
       html = await processAndUploadImages(doc.body.innerHTML);
 
       const rawPages = html
@@ -233,66 +237,74 @@ function WordToFlipbook({
 
       const pagesArray = rawPages.map((pageHtml) => ({ html: pageHtml }));
 
-      await savePages(pagesArray);
+      try {
+        const total = pagesArray.length;
+        setUploadStage('pages');
+        setTotalPages(total);
+        setUploadedCount(0);
+        setUploadError('');
 
-      setPages(pagesArray);
+        for (let i = 0; i < total; i++) {
+          setUploadProgress(`جاري رفع الصفحات... (${i + 1}/${total})`);
+
+          await api.saveSinglePage(i, pagesArray[i].html, total);
+
+          setUploadedCount(i + 1);
+        }
+
+        setUploadProgress('تم الانتهاء من رفع الكتاب بالكامل ✅');
+        setCurrentPageIndex(0);
+
+        navigate('/view');
+      } catch (err: any) {
+        console.error(err);
+
+        setUploadError(
+          err?.message ||
+            'حصل خطأ أثناء رفع الصفحات. تأكد من الاتصال بالإنترنت وحاول مرة أخرى.'
+        );
+
+        setUploading(false);
+        setUploadStage('idle');
+        return;
+      } finally {
+        setUploading(false);
+        setUploadStage('idle');
+      }
+
       setCurrentPageIndex(0);
     } catch (err) {
       console.error('Error processing file:', err);
     } finally {
       setUploading(false);
+      setUploadStage('idle');
     }
   };
 
   return (
     <div className="app-container">
-      {pages.length > 0 ? (
-        <>
-          <div className="upload-section">
-            <div className="upload-card">
-              <h2>Word to Flipbook</h2>
-              <p className="subtitle">تحويل ملفات Word إلى كتاب تفاعلي جميل</p>
-              {uploading ? (
-                <div className="loading-container">
-                  <div className="warning-badge">
-                    ⚠️ لا تغلق الصفحة أثناء الرفع!
-                  </div>
-                  <div className="progress-bar-container">
-                    <div className="progress-bar"></div>
-                  </div>
-                  <p className="loading-text">
-                    {uploadProgress || `${loadingMessage}${dots}`}
-                  </p>
-                  <p className="loading-subtext">
-                    قد يستغرق الأمر عدة دقائق...
-                  </p>
-                </div>
-              ) : (
-                <label className="file-input-wrapper">
-                  <input
-                    type="file"
-                    accept=".docx"
-                    onChange={handleFile}
-                    className="file-input"
-                  />
-                  <span className="file-label">اختر ملف Word</span>
-                </label>
-              )}
+      <div className="upload-section">
+        <div className="upload-card">
+          <h2>Word to Flipbook</h2>
+          <p className="subtitle">تحويل ملفات Word إلى كتاب تفاعلي جميل</p>
+          {uploadError ? (
+            <div className="upload-error-box">
+              <span className="error-icon">❌</span>
+              <p className="error-text">{uploadError}</p>
+
+              <button
+                className="retry-btn"
+                onClick={() => {
+                  setUploadError('');
+                  setUploadedCount(0);
+                  setTotalPages(0);
+                }}
+              >
+                🔁 حاول مرة أخرى
+              </button>
             </div>
-          </div>
-          <FlippingBook
-            titles={[]}
-            pages={pages}
-            currentPageIndex={currentPageIndex}
-            setCurrentPageIndex={setCurrentPageIndex}
-          />
-        </>
-      ) : (
-        <div className="upload-section">
-          <div className="upload-card">
-            <h2>Word to Flipbook</h2>
-            <p className="subtitle">تحويل ملفات Word إلى كتاب تفاعلي جميل</p>
-            {uploading ? (
+          ) : uploading ? (
+            uploadStage === 'images' ? (
               <div className="loading-container">
                 <div className="warning-badge">
                   ⚠️ لا تغلق الصفحة أثناء الرفع!
@@ -305,20 +317,43 @@ function WordToFlipbook({
                 </p>
                 <p className="loading-subtext">قد يستغرق الأمر عدة دقائق...</p>
               </div>
+            ) : uploadStage === 'pages' ? (
+              <div className="loading-container">
+                <div className="warning-badge">
+                  ⚠️ لا تغلق الصفحة أثناء الرفع!
+                </div>
+
+                <div className="progress-bar-container">
+                  <div
+                    className="progress-bar"
+                    style={{
+                      width: `${Math.round(
+                        (uploadedCount / totalPages) * 100
+                      )}%`,
+                    }}
+                  />
+                </div>
+
+                <p className="loading-text">
+                  تم رفع {uploadedCount} من {totalPages} صفحة
+                </p>
+              </div>
             ) : (
-              <label className="file-input-wrapper">
-                <input
-                  type="file"
-                  accept=".docx"
-                  onChange={handleFile}
-                  className="file-input"
-                />
-                <span className="file-label">اختر ملف Word</span>
-              </label>
-            )}
-          </div>
+              'loading'
+            )
+          ) : (
+            <label className="file-input-wrapper">
+              <input
+                type="file"
+                accept=".docx"
+                onChange={handleFile}
+                className="file-input"
+              />
+              <span className="file-label">اختر ملف Word</span>
+            </label>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

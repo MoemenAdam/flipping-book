@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
-import App from './components/App';
+import WordToFlipbook from './components/App';
 import { api } from './constants/global';
 import { Link } from 'react-router-dom';
 
@@ -198,7 +198,7 @@ const Page = () => {
 
       {/* Main Content with File Upload */}
       <div className="mainApp">
-        <App savePages={api.savePages} />
+        <WordToFlipbook />
       </div>
     </div>
   );
