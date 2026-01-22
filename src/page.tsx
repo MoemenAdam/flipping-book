@@ -187,8 +187,8 @@ const Page = () => {
     <div>
       {/* Header */}
       <header style={styles.header as any}>
-        <div style={styles.headerContent}>
-          <div style={styles.headerLeft}>
+        <div style={styles.headerContent as any}>
+          <div style={styles.headerLeft as any}>
             <div style={styles.logoSmall}>
               <svg width="35" height="35" viewBox="0 0 50 50" fill="none">
                 <circle
@@ -401,11 +401,15 @@ const styles = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: '15px',
   },
   headerLeft: {
     display: 'flex',
     alignItems: 'center',
     gap: '15px',
+    flexWrap: 'wrap',
+    flex: '1 1 auto',
   },
   logoSmall: {
     display: 'flex',
