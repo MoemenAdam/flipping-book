@@ -56,12 +56,16 @@ const FlippingBook = ({
       : pages[currentPageIndex];
 
   useEffect(() => {
-    if (pageRef.current) {
-      setTimeout(() => {
-        setPageHeight(pageRef.current?.offsetHeight ?? 0);
-      }, 100);
-    }
-  }, [underPage, pageRef]);
+    if (!pageRef.current) return;
+  
+    const interval = setInterval(() => {
+      setPageHeight(pageRef.current?.offsetHeight ?? 0);
+    }, 100);
+  
+    return () => {
+      clearInterval(interval);
+    };
+  }, [underPage]);
 
   return (
     <div className="book-container">
@@ -260,3 +264,4 @@ const PagesSidebar = ({
 };
 
 export default FlippingBook;
+
