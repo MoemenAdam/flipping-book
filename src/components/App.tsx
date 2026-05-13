@@ -6,6 +6,7 @@ import { supabase } from './supabase';
 import { api } from '../constants/global';
 import { useNavigate } from 'react-router-dom';
 import FlippingBook from './FlippingBook';
+import { normalizeImageCaptionsHtml } from '../utils/normalizeImageCaptionsHtml';
 
 const BUCKET_NAME = 'uploads'; // اسم الـ bucket
 
@@ -168,7 +169,7 @@ function WordToFlipbook() {
     }
 
     setUploadProgress('');
-    return doc.body.innerHTML;
+    return normalizeImageCaptionsHtml(doc.body.innerHTML);
   };
 
   const processItalicTooltips = (root: HTMLElement) => {
@@ -189,19 +190,31 @@ function WordToFlipbook() {
 
       if (!triggerText || !tooltipText) return;
 
-      const span = document.createElement('span');
-      span.className = 'tooltip-wrapper percent-tooltip';
-      span.innerHTML = `
-        <div class="tooltip-wrapper percent-tooltip">
-          <span class="tooltip-trigger percent-trigger">${triggerText}</span>
-          <div class="tooltip-content percent-tooltip-content">
-            <div class="tooltip-arrow"></div>
-            <span class="tooltip-text">${tooltipText}</span>
-          </div>
-        </div>
-      `;
+      // داخل `<p>` مسموح بمحتوى phrasing بس — أي `<div>` المتصفح يطلعه بره الفقرة
+      // ويبقي `<span>` فاضي. كل الغلاف من span + نص عبر textContent.
+      const wrapper = document.createElement('span');
+      wrapper.className = 'tooltip-wrapper percent-tooltip';
 
-      italic.replaceWith(span);
+      const trigger = document.createElement('span');
+      trigger.className = 'tooltip-trigger percent-trigger';
+      trigger.textContent = triggerText;
+
+      const content = document.createElement('span');
+      content.className = 'tooltip-content percent-tooltip-content';
+
+      const arrow = document.createElement('span');
+      arrow.className = 'tooltip-arrow';
+
+      const tooltipTextEl = document.createElement('span');
+      tooltipTextEl.className = 'tooltip-text';
+      tooltipTextEl.textContent = tooltipText;
+
+      content.appendChild(arrow);
+      content.appendChild(tooltipTextEl);
+      wrapper.appendChild(trigger);
+      wrapper.appendChild(content);
+
+      italic.replaceWith(wrapper);
     });
   };
 
@@ -230,6 +243,7 @@ function WordToFlipbook() {
       });
 
       processItalicTooltips(doc.body);
+      doc.body.innerHTML = normalizeImageCaptionsHtml(doc.body.innerHTML);
 
       const rawPages = doc.body.innerHTML
         .split(/<h[1-2]>/)

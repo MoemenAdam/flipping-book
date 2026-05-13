@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight, Menu, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { extractTitle } from '../constants/global';
+import { normalizeImageCaptionsHtml } from '../utils/normalizeImageCaptionsHtml';
 
 type Page = { html: string | null };
 
@@ -107,7 +108,11 @@ const FlippingBook = ({
           }`}
         >
           {underPage?.html ? (
-            <div dangerouslySetInnerHTML={{ __html: underPage.html }} />
+            <div
+              dangerouslySetInnerHTML={{
+                __html: normalizeImageCaptionsHtml(underPage.html),
+              }}
+            />
           ) : (
             <div className="">جاري تحميل الصفحة...</div>
           )}
@@ -120,7 +125,11 @@ const FlippingBook = ({
             onAnimationEnd={() => setFlipDirection(null)}
           >
             {flipPage?.html ? (
-              <div dangerouslySetInnerHTML={{ __html: flipPage.html }} />
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: normalizeImageCaptionsHtml(flipPage.html),
+                }}
+              />
             ) : (
               <div className="page-skeleton">جاري تحميل الصفحة...</div>
             )}

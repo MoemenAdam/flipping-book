@@ -577,6 +577,17 @@ body {
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
 }
 
+/* محتوى الكتاب فقط (داخل `.book`) — مش الـ sidebar */
+.book .page {
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+.book .page p.text-center {
+  text-align: center;
+  text-justify: auto;
+}
+
 .page-wrapper {
   position: relative;
 }
@@ -698,7 +709,8 @@ body {
 /* إضافة تنسيق جديد لـ اللينكات مع tooltip */
 .link-tooltip-wrapper {
   position: relative;
-  display: inline-block;
+  display: inline;
+  vertical-align: baseline;
   cursor: help;
 }
 
@@ -708,7 +720,7 @@ body {
   transition: all var(--transition-fast);
   padding: 2px 4px;
   border-radius: 3px;
-  display: inline-block;
+  display: inline;
 }
 
 .link-tooltip-wrapper:hover .link-text {
@@ -787,14 +799,16 @@ body {
   transform: scale(0.98);
 }
 
-/* Tooltip Styling */
+/* Tooltip Styling — inline عشان الـ justify والتفاف السطر يفضلوا طبيعيين */
 .tooltip-wrapper {
   position: relative;
-  display: inline-block;
+  display: inline;
+  vertical-align: baseline;
   cursor: help;
 }
 
 .tooltip-trigger {
+  display: inline;
   color: var(--primary-color);
   font-weight: 600;
   border-bottom: 2px dotted var(--primary-color);
@@ -868,18 +882,19 @@ body {
 /* إضافة تنسيق النمط % للـ tooltip */
 .percent-tooltip {
   position: relative;
-  display: inline-block;
+  display: inline;
+  vertical-align: baseline;
   cursor: help;
 }
 
 .percent-trigger {
+  display: inline;
   color: var(--primary-color);
   font-weight: 600;
   border-bottom: 2px dotted var(--primary-color);
   transition: all var(--transition-fast);
   padding: 2px 4px;
   border-radius: 3px;
-  display: inline-block;
 }
 
 .percent-trigger:hover {
