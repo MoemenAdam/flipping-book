@@ -935,6 +935,56 @@ body {
   transition: transform var(--transition-base);
 }
 
+.page img:has(+ .image-caption) {
+  margin-bottom: 0.35rem;
+}
+
+.page .image-caption {
+  display: block;
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 0.87rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.page em.poetry-em {
+  font-style: normal;
+  font-weight: inherit;
+  display: block;
+  margin: 0.65rem 0;
+}
+
+.page em.poetry-em .poetry-line {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem 1.25rem;
+  width: 100%;
+  margin: 0.35rem 0;
+  direction: rtl;
+}
+
+.page em.poetry-em .poetry-hemi {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.page em.poetry-em .poetry-hemi.poetry-start {
+  text-align: right;
+}
+
+.page em.poetry-em .poetry-hemi.poetry-end {
+  text-align: left;
+}
+
+.page em.poetry-em .poetry-line-single {
+  display: block;
+  text-align: center;
+  margin: 0.35rem 0;
+}
+
 .page img:hover {
   transform: scale(1.02);
 }
