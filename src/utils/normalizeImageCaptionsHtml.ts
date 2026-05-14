@@ -1,7 +1,7 @@
 import { stripEmptyDecorativeWrappers } from './stripEmptyDecorativeWrappers';
 import { unwrapTextOnlyParagraphs } from './unwrapTextOnlyParagraphs';
 
-/** فواصل الشعر: شرطة أو أكثر مع مسافات (مثل `-` أو `- -` أو `-  -`). */
+/** Poetry hemistich delimiter: one or more dashes with optional spaces. */
 const POETRY_HEMISTICH_SPLIT = /\s*(?:-\s*)+\s*/;
 
 function escapeHtmlText(s: string): string {
@@ -12,9 +12,7 @@ function escapeHtmlText(s: string): string {
     .replace(/"/g, '&quot;');
 }
 
-/**
- * `<em>شطر أيمن - شطر أيسر</em>` → صفوف بعرض الصفحة (يمين / شمال) زي تنسيق الشعر.
- */
+/** Split `<em>` text on dash runs into RTL poetry rows (right / left hemistichs). */
 function transformPoetryEmElements(body: HTMLElement): void {
   const ems = Array.from(body.querySelectorAll('em')).filter(
     (e) => !e.querySelector('em')
@@ -48,7 +46,7 @@ function transformPoetryEmElements(body: HTMLElement): void {
   }
 }
 
-/** يلفّ أي محتوى بعد آخر `img` داخل نفس الفقرة في span للكابشن (تنسيق أقرب وأصغر). */
+/** Wrap nodes after the last `img` in a paragraph into `.image-caption`. */
 function wrapImageCaptionsInParagraphs(body: HTMLElement, doc: Document): void {
   for (const p of Array.from(body.querySelectorAll('p'))) {
     const imgs = p.querySelectorAll('img');
@@ -68,9 +66,8 @@ function wrapImageCaptionsInParagraphs(body: HTMLElement, doc: Document): void {
 }
 
 /**
- * Word / mammoth غالبًا يطلعوا الصورة في `<p>` والكابشن في `<p>` منفصل.
- * ندمج الكابشن اللي جاي مباشرة بعد فقرة فيها صور بس في نفس الـ `<p>`،
- * ونضيف `text-center` لأي `<p>` فيه صورة ونص جنب بعض.
+ * Merge image-only `<p>` with the following text-only `<p>` (Word/mammoth output).
+ * Adds `text-center` when a paragraph contains both an image and text.
  */
 function textWithoutImages(el: Element): string {
   const clone = el.cloneNode(true) as HTMLElement;

@@ -1,7 +1,3 @@
-/**
- * يفك `<p>` اللي جوّاه نص فقط (مفيش عناصر زي `<br>` أو `<span>`).
- * لو في فقرتين نص ورا بعض بعد الفك، بنحط `<br><br>` عشان ما يلزقش الكلام.
- */
 function paragraphHasNoElementChildren(p: Element): boolean {
   for (const n of p.childNodes) {
     if (n.nodeType === Node.ELEMENT_NODE) return false;
@@ -9,6 +5,9 @@ function paragraphHasNoElementChildren(p: Element): boolean {
   return true;
 }
 
+/**
+ * Unwrap `<p>` that contain only text nodes; insert `<br><br>` between merged runs.
+ */
 export function unwrapTextOnlyParagraphs(root: ParentNode): void {
   const list = Array.from(root.querySelectorAll('p')).filter(
     paragraphHasNoElementChildren

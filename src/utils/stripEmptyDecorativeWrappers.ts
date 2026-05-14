@@ -1,7 +1,3 @@
-/**
- * يشيل غلافات الـ tooltip / اللينك الفاضية (نصها بعد التشذيب فاضي).
- * بعدها `unwrapTextOnlyParagraphs` يقدر يفك `<p>` اللي كان بس جوّاه الغلاف ده.
- */
 function isVisuallyEmptyText(el: Element): boolean {
   const t = (el.textContent || '')
     .replace(/\u00a0/g, ' ')
@@ -10,6 +6,7 @@ function isVisuallyEmptyText(el: Element): boolean {
   return t === '';
 }
 
+/** Remove empty tooltip/link wrappers so text-only paragraphs can unwrap. */
 export function stripEmptyDecorativeWrappers(root: ParentNode): void {
   const maxRounds = 32;
   for (let r = 0; r < maxRounds; r++) {

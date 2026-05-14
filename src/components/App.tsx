@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import FlippingBook from './FlippingBook';
 import { normalizeImageCaptionsHtml } from '../utils/normalizeImageCaptionsHtml';
 
-const BUCKET_NAME = 'uploads'; // اسم الـ bucket
+const BUCKET_NAME = 'uploads';
 
 function WordToFlipbook() {
   const [uploading, setUploading] = useState(false);
@@ -29,7 +29,6 @@ function WordToFlipbook() {
 
   const navigate = useNavigate();
 
-  // 🔹 تأثير النقط المتحركة
   useEffect(() => {
     if (!uploading) return;
 
@@ -40,7 +39,6 @@ function WordToFlipbook() {
     return () => clearInterval(interval);
   }, [uploading]);
 
-  // 🔹 تغيير رسائل التحميل
   useEffect(() => {
     if (!uploading) return;
 
@@ -61,11 +59,9 @@ function WordToFlipbook() {
     return () => clearInterval(interval);
   }, [uploading]);
 
-  // 🔹 منع إغلاق الصفحة أثناء الرفع
   useEffect(() => {
     if (!uploading) return;
 
-    // دالة التحذير عند محاولة المغادرة
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
       e.returnValue =
@@ -73,16 +69,13 @@ function WordToFlipbook() {
       return e.returnValue;
     };
 
-    // إضافة المستمع
     window.addEventListener('beforeunload', handleBeforeUnload);
 
-    // تنظيف المستمع عند الانتهاء
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, [uploading]);
 
-  // 🔹 دالة تحويل Base64 لـ Blob
   const base64ToBlob = (base64: string, contentType = 'image/png') => {
     const byteCharacters = atob(base64);
     const byteArrays = [];
@@ -94,23 +87,19 @@ function WordToFlipbook() {
     return new Blob([new Uint8Array(byteArrays)], { type: contentType });
   };
 
-  // 🔹 دالة رفع الصورة على Supabase
   const uploadImageToSupabase = async (
     base64Data: string,
     fileName: string
   ): Promise<string | null> => {
     try {
-      // نستخرج الـ content type
       const matches = base64Data.match(/^data:([^;]+);base64,(.+)$/);
       if (!matches) return null;
 
       const contentType = matches[1];
       const base64 = matches[2];
 
-      // نحول لـ Blob
       const blob = base64ToBlob(base64, contentType);
 
-      // نرفع على Supabase
       const { data, error } = await supabase.storage
         .from(BUCKET_NAME)
         .upload(fileName, blob, {
