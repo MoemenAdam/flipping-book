@@ -112,7 +112,6 @@ function WordToFlipbook() {
         return null;
       }
 
-      // نجيب الـ public URL
       const {
         data: { publicUrl },
       } = supabase.storage.from(BUCKET_NAME).getPublicUrl(data.path);
@@ -124,7 +123,6 @@ function WordToFlipbook() {
     }
   };
 
-  // 🔹 دالة معالجة كل الصور في الـ HTML
   const processAndUploadImages = async (html: string): Promise<string> => {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
@@ -136,21 +134,17 @@ function WordToFlipbook() {
     for (const img of Array.from(images)) {
       const src = img.getAttribute('src');
 
-      // لو الصورة Base64
       if (src && src.startsWith('data:image')) {
         imageCount++;
         setUploadProgress(`جاري رفع الصور... (${imageCount}/${totalImages})`);
 
-        // نعمل اسم فريد للصورة
         const timestamp = Date.now();
         const random = Math.random().toString(36).substring(7);
         const extension = src.includes('image/png') ? 'png' : 'jpg';
         const fileName = `image_${timestamp}_${random}.${extension}`;
 
-        // نرفع الصورة
         const publicUrl = await uploadImageToSupabase(src, fileName);
 
-        // لو الرفع نجح، نستبدل الـ src
         if (publicUrl) {
           img.setAttribute('src', publicUrl);
         }
@@ -179,8 +173,7 @@ function WordToFlipbook() {
 
       if (!triggerText || !tooltipText) return;
 
-      // داخل `<p>` مسموح بمحتوى phrasing بس — أي `<div>` المتصفح يطلعه بره الفقرة
-      // ويبقي `<span>` فاضي. كل الغلاف من span + نص عبر textContent.
+      // `<p>` allows phrasing-only; invalid wrappers become empty spans — rebuild from text.
       const wrapper = document.createElement('span');
       wrapper.className = 'tooltip-wrapper percent-tooltip';
 
@@ -262,13 +255,10 @@ function WordToFlipbook() {
     setUploadStage('idle');
 
     try {
-      // 🧹 فضّي الصور القديمة
       await api.clearImagesBucket();
 
-      // 🔥 امسح الكتاب القديم كله
       await api.deletePages();
 
-      // 🔹 مرحلة الصور
       setUploadStage('images');
       html = await processAndUploadImages(html);
 
@@ -280,7 +270,6 @@ function WordToFlipbook() {
 
       const pagesArray = rawPages.map((pageHtml) => ({ html: pageHtml }));
 
-      // 🔹 مرحلة الصفحات
       const total = pagesArray.length;
       setUploadStage('pages');
       setTotalPages(total);
@@ -339,7 +328,6 @@ function WordToFlipbook() {
                 </button>
               </div>
 
-              {/* مودال التأكيد */}
               {showConfirmDelete && (
                 <div className="confirm-overlay">
                   <div className="confirm-modal">
@@ -392,7 +380,7 @@ function WordToFlipbook() {
                         className="btn btn-primary"
                         onClick={async () => {
                           setShowConfirmSave(false);
-                          await handleApply(); // 👈 الحفظ الحقيقي هنا
+                          await handleApply();
                         }}
                       >
                         نعم، احفظ واستبدل

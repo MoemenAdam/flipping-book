@@ -51,7 +51,6 @@ export const api = {
 
     return true;
   },
-  // 🔹 حفظ الصفحات صفحة صفحة
   savePages: async (pages: { html: string }[]) => {
     const rows = pages.map((p, index) => ({
       book_key: BOOK_KEY,
@@ -87,11 +86,10 @@ export const api = {
 
     return true;
   },
-  // 🔹 جلب صفحة واحدة
   getPage: async (pageIndex: number) => {
     const { data, error } = await supabase
       .from('book_pages')
-      .select('html') // 👈 html بس
+      .select('html')
       .eq('book_key', BOOK_KEY)
       .eq('page_index', pageIndex)
       .single();
@@ -108,7 +106,6 @@ export const api = {
     if (error) throw error;
     return count || 0;
   },
-  // 🔹 pagination (مثلاً 5 صفحات في الطلب)
   getPagesPaginated: async (page: number, pageSize = 5) => {
     const from = page * pageSize;
     const to = from + pageSize - 1;
@@ -127,7 +124,6 @@ export const api = {
       total: count,
     };
   },
-  // 🔹 جلب العناوين بس (للـ sidebar مثلاً)
   getTitles: async () => {
     const { data, error } = await supabase
       .from('book_pages')

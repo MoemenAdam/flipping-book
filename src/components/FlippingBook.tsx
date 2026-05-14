@@ -96,7 +96,6 @@ const FlippingBook = ({
           height: pageHeight,
         }}
       >
-        {/* الصفحة الثابتة تحت */}
         <div
           ref={pageRef}
           className={`page page-under ${
@@ -118,7 +117,6 @@ const FlippingBook = ({
           )}
         </div>
 
-        {/* الصفحة اللي بتتقلب */}
         {flipDirection && (
           <div
             className={`page page-flip flip-${flipDirection}`}
@@ -164,7 +162,6 @@ const PagesSidebar = ({
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  // التحقق من حجم الشاشة
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 1380);
@@ -214,7 +211,6 @@ const PagesSidebar = ({
         </button>
       )}
 
-      {/* Overlay للموبايل */}
       {isMobile && isOpen && (
         <div
           onClick={() => setIsOpen(false)}
@@ -266,7 +262,6 @@ const PagesSidebar = ({
         ))}
       </aside>
 
-      {/* Spacer للمحتوى في الشاشات الكبيرة */}
       {/* {!isMobile && <div style={{ width: '260px', flexShrink: 0 }} />} */}
     </>
   );

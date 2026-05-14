@@ -19,7 +19,6 @@ const Page = () => {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        // 1️⃣ هات السيشن من Supabase
         const {
           data: { session },
           error,
@@ -27,17 +26,14 @@ const Page = () => {
 
         if (error) throw error;
 
-        // 2️⃣ لو في Session سليمة
         if (session?.access_token && session.user?.email) {
           setToken(session.access_token);
           setUserEmail(session.user.email);
           setIsLoggedIn(true);
 
-          // sync مع localStorage
           localStorage.setItem('authToken', session.access_token);
           localStorage.setItem('userEmail', session.user.email);
         } else {
-          // 3️⃣ مفيش session → امسح أي junk
           setIsLoggedIn(false);
           setToken(null);
           setUserEmail('');
@@ -209,7 +205,6 @@ const Page = () => {
 
             <h2 style={styles.headerTitle}>لوحة التحكم</h2>
 
-            {/* زرار عرض الكتاب */}
             <Link to="/view" style={styles.viewBookBtn}>
               📖 الكتاب الحالي
             </Link>

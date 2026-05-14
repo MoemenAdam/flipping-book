@@ -13,21 +13,21 @@ const View = () => {
   useEffect(() => {
     const init = async () => {
       try {
-        // 1) titles فورًا (خفيف جدًا)
+        // 1) titles (lightweight)
         const titlesData = await api.getTitles();
         setTitles(titlesData.map((t: any) => t.title));
 
-        // 2) عدد الصفحات
+        // 2) page count
         const count = await api.getPagesCount();
         if (!count) {
           setLoading(false);
           return;
         }
 
-        // 3) نجهز array فاضي بالحجم الصح
+        // 3) placeholder array
         setPages(Array.from({ length: count }, () => ({ html: null })));
 
-        // 4) نبعث request لكل صفحة (parallel)
+        // 4) fetch each page in parallel
         const requests = Array.from({ length: count }, (_, i) => i).map(
           async (index) => {
             const html = await api.getPage(index);
