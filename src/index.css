@@ -933,6 +933,7 @@ body {
   border-radius: 8px;
   box-shadow: var(--shadow-md);
   transition: transform var(--transition-base);
+  cursor: zoom-in;
 }
 
 .page img:has(+ .image-caption) {
@@ -1260,6 +1261,88 @@ body {
     max-width: 280px;
     font-size: 0.8rem;
   }
+}
+
+/* Image lightbox */
+.image-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(18, 14, 10, 0);
+  cursor: zoom-out;
+  transition: background 0.4s ease;
+}
+
+.image-lightbox.open {
+  background: rgba(18, 14, 10, 0.78);
+  backdrop-filter: blur(10px);
+}
+
+.image-lightbox.enter,
+.image-lightbox.leave {
+  background: rgba(18, 14, 10, 0);
+  backdrop-filter: blur(0);
+}
+
+.image-lightbox-close {
+  position: absolute;
+  top: -56px;
+  inset-inline-start: 0;
+  z-index: 1;
+  width: 46px;
+  height: 46px;
+  border: none;
+  border-radius: 50%;
+  background: #fff;
+  color: #1f2937;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 0.25s ease 0.18s, transform 0.25s ease 0.18s,
+    background 0.2s ease, color 0.2s ease;
+}
+
+.image-lightbox.open .image-lightbox-close {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.image-lightbox.leave .image-lightbox-close {
+  opacity: 0;
+  transform: scale(0.8);
+  transition-delay: 0s;
+}
+
+.image-lightbox-close:hover {
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.image-lightbox-stage {
+  position: fixed;
+  overflow: visible;
+  border-radius: 12px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+  cursor: default;
+  transition: top 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    left 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.image-lightbox-stage img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  border-radius: 12px;
+  background: #111;
+  pointer-events: none;
+  user-select: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

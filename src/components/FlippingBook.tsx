@@ -1,7 +1,8 @@
 import { ChevronLeft, ChevronRight, Menu, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { extractTitle } from '../constants/global';
 import { normalizeImageCaptionsHtml } from '../utils/normalizeImageCaptionsHtml';
+import ImageLightbox, { type LightboxOrigin } from './ImageLightbox';
 
 type Page = { html: string | null };
 
@@ -20,7 +21,35 @@ const FlippingBook = ({
     null
   );
   const [pageHeight, setPageHeight] = useState(0);
+  const [lightbox, setLightbox] = useState<{
+    src: string;
+    alt: string;
+    origin: LightboxOrigin;
+  } | null>(null);
   const pageRef = useRef<HTMLDivElement | null>(null);
+
+  const openImageLightbox = (event: MouseEvent<HTMLDivElement>) => {
+    if (flipDirection) return;
+    const target = event.target;
+    if (!(target instanceof HTMLImageElement)) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const rect = target.getBoundingClientRect();
+    setLightbox({
+      src: target.currentSrc || target.src,
+      alt: target.alt || '',
+      origin: {
+        top: rect.top,
+        left: rect.left,
+        width: rect.width,
+        height: rect.height,
+        naturalWidth: target.naturalWidth,
+        naturalHeight: target.naturalHeight,
+      },
+    });
+  };
 
   const goToNextPage = () => {
     if (currentPageIndex < pages.length - 1) {
@@ -105,6 +134,7 @@ const FlippingBook = ({
               ? 'shadow-prev'
               : ''
           }`}
+          onClick={openImageLightbox}
         >
           {underPage?.html ? (
             <div
@@ -142,6 +172,15 @@ const FlippingBook = ({
         currentPageIndex={currentPageIndex}
         setCurrentPageIndex={setCurrentPageIndex}
       />
+
+      {lightbox && (
+        <ImageLightbox
+          src={lightbox.src}
+          alt={lightbox.alt}
+          origin={lightbox.origin}
+          onClose={() => setLightbox(null)}
+        />
+      )}
     </div>
   );
 };
