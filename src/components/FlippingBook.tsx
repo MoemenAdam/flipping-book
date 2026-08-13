@@ -135,6 +135,11 @@ const FlippingBook = ({
               : ''
           }`}
           onClick={openImageLightbox}
+          onDragStart={(event) => {
+            if (event.target instanceof HTMLImageElement) {
+              event.preventDefault();
+            }
+          }}
         >
           {underPage?.html ? (
             <div
